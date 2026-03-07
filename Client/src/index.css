@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #091e3e;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #091e3e;
+
+  --color-popover: #ffffff;
+  --color-popover-foreground: #091e3e;
+
+  --color-primary: #06a3da;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #091e3e;
+  --color-secondary-foreground: #ffffff;
+
+  --color-muted: #f8f9fa;
+  --color-muted-foreground: #6b6a75;
+
+  --color-accent: #eefbff;
+  --color-accent-foreground: #06a3da;
+
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #fafafa;
+
+  --color-border: #e5e5e5;
+  --color-input: #f2f2f2;
+  --color-ring: #06a3da;
+
+  --font-display: "Nunito", sans-serif;
+  --font-body: "Montserrat", sans-serif;
+
+  --radius-lg: 5px;
+  --radius-md: 3px;
+  --radius-sm: 2px;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: #e5e5e5;
+  }
+}
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #091e3e;
+    --card: #ffffff;
+    --card-foreground: #091e3e;
+    --popover: #ffffff;
+    --popover-foreground: #091e3e;
+    --primary: #06a3da;
+    --primary-foreground: #ffffff;
+    --secondary: #091e3e;
+    --secondary-foreground: #ffffff;
+    --muted: #f8f9fa;
+    --muted-foreground: #6b6a75;
+    --accent: #eefbff;
+    --accent-foreground: #06a3da;
+    --destructive: #ef4444;
+    --destructive-foreground: #fafafa;
+    --border: #e5e5e5;
+    --input: #f2f2f2;
+    --ring: #06a3da;
+    --radius: 5px;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-muted-foreground font-body;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold text-secondary;
+    line-height: 1.2;
+  }
+
+  .container {
+    @apply mx-auto px-4;
+    max-width: 1320px;
+  }
+}
+
+@layer utilities {
+  .bg-overlay {
+    background: linear-gradient(rgba(9, 30, 62, 0.7), rgba(9, 30, 62, 0.7));
+  }
+
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translate3d(0, -100%, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  .animate-fade-in-down {
+    animation: fadeInDown 1s both;
+  }
+}

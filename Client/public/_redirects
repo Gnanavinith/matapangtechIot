@@ -1,0 +1,6 @@
+# Handle React Router client-side routing
+# Redirect all 404s to index.html so React Router can handle them
+/*    /index.html   200
+
+# Optional: Force HTTPS (uncomment if needed)
+# http://matapangtechiot.onrender.com/*    https://matapangtechiot.onrender.com/:splat   301!
