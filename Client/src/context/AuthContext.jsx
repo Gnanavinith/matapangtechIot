@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 
-// Load admin email and API URL from environment variables
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'admin@example.com';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -11,33 +10,38 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in on mount
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedUser = localStorage.getItem('user');
+      // ✅ Guard against null or invalid JSON
+      if (storedUser && storedUser !== 'undefined') {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (e) {
+      console.error('Failed to parse stored user:', e);
+      localStorage.removeItem('user');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        setUser(data.user);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('token', data.token);
-        return { success: true, user: data.user };
+      if (response.ok && data.success) {
+        // ✅ Backend returns data.data, not data.user
+        const userData = data.data;
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        return { success: true, user: userData };
       } else {
-        return { success: false, message: data.message };
+        return { success: false, message: data.message || 'Login failed' };
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -49,21 +53,20 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        setUser(data.user);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('token', data.token);
-        return { success: true, user: data.user };
+      if (response.ok && data.success) {
+        // ✅ Backend returns data.data, not data.user
+        const newUser = data.data;
+        setUser(newUser);
+        localStorage.setItem('user', JSON.stringify(newUser));
+        return { success: true, user: newUser };
       } else {
-        return { success: false, message: data.message };
+        return { success: false, message: data.message || 'Signup failed' };
       }
     } catch (error) {
       console.error('Signup error:', error);
@@ -79,7 +82,7 @@ export const AuthProvider = ({ children }) => {
 
   const isAdmin = () => {
     if (!user) return false;
-    return user.email === ADMIN_EMAIL && user.isAdmin;
+    return user.isAdmin === true;
   };
 
   const value = {
