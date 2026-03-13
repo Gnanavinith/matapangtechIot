@@ -1,10 +1,21 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import BlogPost from '../models/BlogPost.js';
 
 const router = express.Router();
 
-// GET /api/blog/posts
-router.get('/posts', async (req, res) => {
+// Middleware to check DB connection
+const requireDB = (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      success: false,
+      message: 'Database not connected. Please try again shortly.',
+    });
+  }
+  next();
+};
+
+router.get('/posts', requireDB, async (req, res) => {
   try {
     const posts = await BlogPost.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: posts.length, data: posts });
@@ -13,8 +24,7 @@ router.get('/posts', async (req, res) => {
   }
 });
 
-// GET /api/blog/posts/published
-router.get('/posts/published', async (req, res) => {
+router.get('/posts/published', requireDB, async (req, res) => {
   try {
     const posts = await BlogPost.find({ status: 'published' }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: posts.length, data: posts });
@@ -23,21 +33,17 @@ router.get('/posts/published', async (req, res) => {
   }
 });
 
-// GET /api/blog/posts/:id
-router.get('/posts/:id', async (req, res) => {
+router.get('/posts/:id', requireDB, async (req, res) => {
   try {
     const post = await BlogPost.findById(req.params.id);
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
     res.status(200).json({ success: true, data: post });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 });
 
-// POST /api/blog/posts
-router.post('/posts', async (req, res) => {
+router.post('/posts', requireDB, async (req, res) => {
   try {
     const { title, content, author, excerpt, featuredImage, category, tags, status } = req.body;
     if (!title || !content) {
@@ -50,8 +56,7 @@ router.post('/posts', async (req, res) => {
   }
 });
 
-// PUT /api/blog/posts/:id
-router.put('/posts/:id', async (req, res) => {
+router.put('/posts/:id', requireDB, async (req, res) => {
   try {
     const { title, content, author, excerpt, featuredImage, category, tags, status } = req.body;
     const updatedPost = await BlogPost.findByIdAndUpdate(
@@ -59,22 +64,17 @@ router.put('/posts/:id', async (req, res) => {
       { title, content, author, excerpt, featuredImage, category, tags, status },
       { new: true, runValidators: true }
     );
-    if (!updatedPost) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
+    if (!updatedPost) return res.status(404).json({ success: false, message: 'Post not found' });
     res.status(200).json({ success: true, message: 'Post updated successfully', data: updatedPost });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 });
 
-// DELETE /api/blog/posts/:id
-router.delete('/posts/:id', async (req, res) => {
+router.delete('/posts/:id', requireDB, async (req, res) => {
   try {
     const deleted = await BlogPost.findByIdAndDelete(req.params.id);
-    if (!deleted) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
+    if (!deleted) return res.status(404).json({ success: false, message: 'Post not found' });
     res.status(200).json({ success: true, message: 'Post deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
