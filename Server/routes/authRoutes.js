@@ -1,113 +1,78 @@
 import express from 'express';
-import { authenticateUser, createUser, getUserByEmail } from '../models/userModel.js';
-import { sendNewSubscriberEmail } from '../config/mail.js';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const router = express.Router();
 
-// POST /api/auth/login - User login
-router.post('/login', (req, res) => {
+const userSchema = new mongoose.Schema({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  password: { type: String, required: true },
+  isAdmin: { type: Boolean, default: false },
+}, { timestamps: true });
+
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+
+// POST /api/auth/login
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    // Validate input
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email and password are required',
+      return res.status(400).json({ success: false, message: 'Email and password are required' });
+    }
+
+    // Check hardcoded admin credentials from env
+    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+      return res.status(200).json({
+        success: true,
+        message: 'Login successful',
+        data: { id: 'admin', name: 'Admin', email, isAdmin: true },
       });
     }
-    
-    // Authenticate user
-    const user = authenticateUser(email, password);
-    
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password',
-      });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user || user.password !== password) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
-    
-    // Generate a simple token (in production, use JWT)
-    const token = Buffer.from(`${user.id}:${user.email}`).toString('base64');
-    
+
     res.status(200).json({
       success: true,
       message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-      },
+      data: { id: user._id, name: user.name, email: user.email, isAdmin: user.isAdmin },
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 });
 
-// POST /api/auth/signup - User signup
+// POST /api/auth/signup
 router.post('/signup', async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    
-    // Validate input
     if (!name || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Name, email, and password are required',
-      });
+      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
     }
-    
-    // Check if user already exists
-    const existingUser = getUserByEmail(email);
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        message: 'User with this email already exists',
-      });
+
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'Email already registered' });
     }
-    
-    // Create new user
-    const newUser = createUser({ name, email, password });
-    
-    // Generate a simple token (in production, use JWT)
-    const token = Buffer.from(`${newUser.id}:${newUser.email}`).toString('base64');
-    
-    // Send email notification if it's a regular user (not admin)
-    if (!newUser.isAdmin) {
-      try {
-        await sendNewSubscriberEmail(newUser.name, newUser.email);
-        console.log(`✓ New subscriber email sent for: ${newUser.email}`);
-      } catch (emailError) {
-        console.error('Failed to send new subscriber email:', emailError);
-        // Don't fail the signup if email fails
-      }
-    }
-    
+
+    const user = await User.create({ name, email: email.toLowerCase(), password, isAdmin: false });
     res.status(201).json({
       success: true,
       message: 'Account created successfully',
-      token,
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        isAdmin: newUser.isAdmin,
-      },
+      data: { id: user._id, name: user.name, email: user.email, isAdmin: user.isAdmin },
     });
   } catch (error) {
     console.error('Signup error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message,
-    });
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: 'Email already registered' });
+    }
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
 });
 

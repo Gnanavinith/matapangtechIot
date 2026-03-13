@@ -3,8 +3,8 @@ let users = [];
 let nextId = 1;
 
 // Admin credentials - loaded from environment variable
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '123456';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 // Get all users
 export const getAllUsers = () => {

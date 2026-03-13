@@ -41,14 +41,12 @@ const blogPostSchema = new mongoose.Schema({
     default: 'draft'
   }
 }, {
-  timestamps: true // Automatically adds createdAt and updatedAt
+  timestamps: true
 });
 
-// Index for better query performance
 blogPostSchema.index({ status: 1, createdAt: -1 });
 blogPostSchema.index({ category: 1, status: 1 });
 
-// Virtual for URL slug
 blogPostSchema.virtual('slug').get(function() {
   return this.title
     .toLowerCase()
@@ -58,11 +56,9 @@ blogPostSchema.virtual('slug').get(function() {
     .trim();
 });
 
-// Method to get published posts only
 blogPostSchema.statics.getPublished = function() {
   return this.find({ status: 'published' }).sort({ createdAt: -1 });
 };
 
 const BlogPost = mongoose.model('BlogPost', blogPostSchema);
-
 export default BlogPost;
