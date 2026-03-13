@@ -18,6 +18,8 @@ const QuoteRequest = () => {
     
     // Use API URL from environment
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    console.log('Submitting to API URL:', API_URL);
+    console.log('Form data:', formData);
     
     try {
       const response = await fetch(`${API_URL}/mail/contact`, {
@@ -25,7 +27,11 @@ const QuoteRequest = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: formData.name, email: formData.email, phone: '', service: formData.service, message: formData.message }),
       });
+      
+      console.log('Response status:', response.status);
       const result = await response.json();
+      console.log('Response data:', result);
+      
       if (result.success) {
         setStatus({ 
           type: 'success', 
@@ -36,6 +42,7 @@ const QuoteRequest = () => {
         setStatus({ type: 'error', message: result.message || 'Failed to send request. Please try again later.' });
       }
     } catch (error) {
+      console.error('Error submitting form:', error);
       setStatus({ type: 'error', message: 'Failed to send request. Please try again later.' });
     } finally {
       setLoading(false);
