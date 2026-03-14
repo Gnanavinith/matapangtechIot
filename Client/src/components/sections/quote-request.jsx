@@ -22,13 +22,29 @@ const QuoteRequest = () => {
     console.log('Form data:', formData);
     
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        console.log('Request timed out after 60 seconds');
+      }, 60000); // 60 second timeout for Render free tier
+      
+      console.log('Sending request...');
       const response = await fetch(`${API_URL}/mail/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: formData.name, email: formData.email, phone: '', service: formData.service, message: formData.message }),
+        signal: controller.signal,
       });
       
-      console.log('Response status:', response.status);
+      clearTimeout(timeoutId);
+      console.log('Response received:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const result = await response.json();
       console.log('Response data:', result);
       
@@ -43,7 +59,13 @@ const QuoteRequest = () => {
       }
     } catch (error) {
       console.error('Error submitting form:', error);
-      setStatus({ type: 'error', message: 'Failed to send request. Please try again later.' });
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      if (error.name === 'AbortError') {
+        setStatus({ type: 'error', message: 'Request timed out. The server is taking too long to respond. Please try again or contact support.' });
+      } else {
+        setStatus({ type: 'error', message: `Failed to send request: ${error.message}. Please check your internet connection and try again.` });
+      }
     } finally {
       setLoading(false);
     }
