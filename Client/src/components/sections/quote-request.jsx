@@ -23,10 +23,11 @@ const QuoteRequest = () => {
     
     try {
       const controller = new AbortController();
+      // Increased timeout to 90 seconds for Render free tier cold starts
       const timeoutId = setTimeout(() => {
         controller.abort();
-        console.log('Request timed out after 60 seconds');
-      }, 60000); // 60 second timeout for Render free tier
+        console.log('Request timed out after 90 seconds');
+      }, 90000);
       
       console.log('Sending request...');
       const response = await fetch(`${API_URL}/mail/contact`, {
@@ -62,7 +63,7 @@ const QuoteRequest = () => {
       console.error('Error name:', error.name);
       console.error('Error message:', error.message);
       if (error.name === 'AbortError') {
-        setStatus({ type: 'error', message: 'Request timed out. The server is taking too long to respond. Please try again or contact support.' });
+        setStatus({ type: 'error', message: 'The server is taking longer than expected to respond. This may be due to high traffic. Please try again in a few moments or contact us directly at +91 8248742297.' });
       } else {
         setStatus({ type: 'error', message: `Failed to send request: ${error.message}. Please check your internet connection and try again.` });
       }

@@ -29,8 +29,16 @@ const BlogGrid = () => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/blog/posts/published`);
+        console.log('Fetching from:', `${API_URL}/blog/posts/published`);
+        const response = await fetch(`${API_URL}/blog/posts/published`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log('Response status:', response.status);
         const result = await response.json();
+        console.log('Response data:', result);
         
         if (result.success) {
           setPosts(result.data);
