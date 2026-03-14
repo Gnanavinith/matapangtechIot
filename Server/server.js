@@ -17,14 +17,14 @@ connectDB().catch(err => {
 });
 
 const corsOptions = {
-  origin: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: true, // Allow all origins in development
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'X-Requested-With'],
   credentials: true,
 };
 app.use(cors(corsOptions));
 
-// Handle preflight OPTIONS requests
+// Handle preflight OPTIONS requests explicitly
 app.options('*', cors(corsOptions));
 
 app.use(bodyParser.json());
