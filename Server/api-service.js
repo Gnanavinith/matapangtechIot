@@ -1,30 +1,31 @@
-// API Service for connecting frontend with backend server
-// Import this file in your React components
-
-const API_BASE_URL = 'http://localhost:5000/api';
+// api/service.js
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Mail API Services
 export const mailAPI = {
-  // Send email
   sendEmail: async (to, subject, text, html) => {
     const response = await fetch(`${API_BASE_URL}/mail/send`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ to, subject, text, html }),
     });
     return await response.json();
   },
 
-  // Submit contact form
-  submitContactForm: async (name, email, phone, message) => {
+  submitContactForm: async (name, email, phone, message, service) => {
     const response = await fetch(`${API_BASE_URL}/mail/contact`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name, email, phone, message }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, phone, message, service }),
+    });
+    return await response.json();
+  },
+
+  subscribe: async (email) => {
+    const response = await fetch(`${API_BASE_URL}/mail/subscribe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
     });
     return await response.json();
   },
@@ -32,49 +33,39 @@ export const mailAPI = {
 
 // Blog API Services
 export const blogAPI = {
-  // Get all posts
   getAllPosts: async () => {
     const response = await fetch(`${API_BASE_URL}/blog/posts`);
     return await response.json();
   },
 
-  // Get published posts
   getPublishedPosts: async () => {
     const response = await fetch(`${API_BASE_URL}/blog/posts/published`);
     return await response.json();
   },
 
-  // Get single post by ID
   getPostById: async (id) => {
     const response = await fetch(`${API_BASE_URL}/blog/posts/${id}`);
     return await response.json();
   },
 
-  // Create new post
   createPost: async (postData) => {
     const response = await fetch(`${API_BASE_URL}/blog/posts`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(postData),
     });
     return await response.json();
   },
 
-  // Update post
   updatePost: async (id, postData) => {
     const response = await fetch(`${API_BASE_URL}/blog/posts/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(postData),
     });
     return await response.json();
   },
 
-  // Delete post
   deletePost: async (id) => {
     const response = await fetch(`${API_BASE_URL}/blog/posts/${id}`, {
       method: 'DELETE',
@@ -83,34 +74,23 @@ export const blogAPI = {
   },
 };
 
-// Example usage in React components:
-/*
-import { mailAPI, blogAPI } from '../api/service';
+// Auth API Services
+export const authAPI = {
+  login: async (email, password) => {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    return await response.json();
+  },
 
-// In your component:
-const handleSubmitContact = async (e) => {
-  e.preventDefault();
-  const result = await mailAPI.submitContactForm(name, email, phone, message);
-  if (result.success) {
-    alert('Message sent successfully!');
-  }
+  signup: async (name, email, password) => {
+    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+    return await response.json();
+  },
 };
-
-const loadBlogPosts = async () => {
-  const result = await blogAPI.getPublishedPosts();
-  if (result.success) {
-    setPosts(result.data);
-  }
-};
-
-const createNewPost = async () => {
-  const result = await blogAPI.createPost({
-    title: 'My Post',
-    content: 'Content here...',
-    status: 'published'
-  });
-  if (result.success) {
-    alert('Post created!');
-  }
-};
-*/
